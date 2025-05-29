@@ -23,7 +23,17 @@
 		<module>spring-petclinic-config-server</module>
 		<module>spring-petclinic-discovery-server</module>
 		<module>spring-petclinic-api-gateway</module>
+        <module>spring-petclinic-rooms-service</module>
 	</modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.32</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
 	<profiles>
 		<profile>
@@ -57,9 +67,23 @@
 							</execution>
 						</executions>
 					</plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>3.8.1</version>
+                        <configuration>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                    <version>1.18.30</version> <!-- oder aktuellere -->
+                                </path>
+                            </annotationProcessorPaths>
+                        </configuration>
+                    </plugin>
 
-					<!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties
-						file is present -->
+                    <!-- Spring Boot Actuator displays build-related information if a META-INF/build-info.properties
+                        file is present -->
 					<plugin>
 						<groupId>pl.project13.maven</groupId>
 						<artifactId>git-commit-id-plugin</artifactId>

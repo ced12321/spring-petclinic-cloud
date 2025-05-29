@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rooms-service-deployment
+  labels:
+    app: rooms-service-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rooms-service-deployment
+  template:
+    metadata:
+      name: rooms-service-deployment
+      labels:
+        app: rooms-service-deployment
+    spec:
+      containers:
+        - name: rooms-service-deployment
+          image: ${REPOSITORY_PREFIX}/spring-petclinic-cloud-rooms-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+      restartPolicy: Always
+      
