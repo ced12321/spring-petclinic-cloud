@@ -1,19 +1,19 @@
-package org.springframework.samples.petclinic.rooms.springpetclinicroomsservice.adapter;
+package org.springframework.samples.petclinic.vets.adapter;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.samples.petclinic.rooms.model.RoomRepository;
-import org.springframework.samples.petclinic.rooms.model.dto.RoomDto;
+import org.springframework.samples.petclinic.vets.model.RoomRepository;
+import org.springframework.samples.petclinic.vets.model.dto.RoomDto;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:8080") // TODO: Remove if we use api gateway
 @RequestMapping("/rooms")
 @RestController
 public class RoomController {

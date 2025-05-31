@@ -1,24 +1,58 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rooms-service-deployment
+  name: rooms-service
   labels:
-    app: rooms-service-deployment
+    app: rooms-service
+  namespace: spring-petclinic
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: rooms-service-deployment
+      app: rooms-service
   template:
     metadata:
-      name: rooms-service-deployment
+      name: rooms-service
       labels:
-        app: rooms-service-deployment
+        app: rooms-service
     spec:
       containers:
-        - name: rooms-service-deployment
+        - name: rooms-service
           image: ${REPOSITORY_PREFIX}/spring-petclinic-cloud-rooms-service:latest
           imagePullPolicy: IfNotPresent
+          env:
+          - name: SPRING_PROFILES_ACTIVE
+            value: kubernetes
+          - name: SPRING_DATASOURCE_URL
+            value: jdbc:mysql://rooms-db-mysql.spring-petclinic.svc.cluster.local:3306/service_instance_db?queryInterceptors=brave.mysql8.TracingQueryInterceptor&exceptionInterceptors=brave.mysql8.TracingExceptionInterceptor&zipkinServiceName=rooms-db
+          - name: SPRING_DATASOURCE_USERNAME
+            value: root
+          - name: SPRING_DATASOURCE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: vets-db-mysql
+                key: mysql-root-password
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/liveness
+            initialDelaySeconds: 90
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            initialDelaySeconds: 15
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "sh", "-c", "sleep 10" ]
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              cpu: 2000m
+              memory: 1Gi
           ports:
             - containerPort: 8080
               protocol: TCP

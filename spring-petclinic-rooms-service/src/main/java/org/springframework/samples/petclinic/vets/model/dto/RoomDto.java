@@ -1,8 +1,7 @@
-package org.springframework.samples.petclinic.rooms.springpetclinicroomsservice.model.dto;
+package org.springframework.samples.petclinic.vets.model.dto;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-
+import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import java.time.Instant;
 
 @Entity

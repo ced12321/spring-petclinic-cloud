@@ -1,0 +1,16 @@
+<h2>Rooms</h2>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Room Type</th>
+    </tr>
+    </thead>
+
+    <tr ng-repeat="room in $ctrl.roomList">
+        <td>{{room.id}} </td>
+        <td>{{room.name}} </td>
+        <td>{{room.roomType}}</td>
+    </tr>
+</table>

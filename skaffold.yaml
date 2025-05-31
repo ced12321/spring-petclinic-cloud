@@ -31,6 +31,11 @@ build:
     buildpacks:
       builder:  gcr.io/paketo-buildpacks/builder:base
       trustBuilder: true
+  - image: spring-petclinic-rooms-service
+    context:  ./spring-petclinic-vets-service
+    buildpacks:
+      builder:  gcr.io/paketo-buildpacks/builder:base
+      trustBuilder: true
   - image: spring-petclinic-api-gateway
     context:  ./spring-petclinic-api-gateway
     buildpacks:
@@ -50,6 +55,10 @@ deploy:
     - name: vets-db-mysql
       chartPath: bitnami/mysql #Change to your local ChartRepo if appropriate -> kubeapps/mysql
       valuesFiles: 
+        - k8s/helm-values/db-values.yaml
+    - name: rooms-db-mysql
+      chartPath: bitnami/mysql #Change to your local ChartRepo if appropriate -> kubeapps/mysql
+      valuesFiles:
         - k8s/helm-values/db-values.yaml
       namespace: spring-petclinic
       remote: true

@@ -8,6 +8,11 @@ spring:
   profiles:
     active: production
 
+management:
+  metrics:
+    export:
+      wavefront:
+        apiToken: ""
 ---
 spring:
   config:

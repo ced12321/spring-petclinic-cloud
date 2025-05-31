@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright 2002-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.rooms.springpetclinicroomsservice.system;
+package org.springframework.samples.petclinic.vets;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.samples.petclinic.vets.system.RoomsProperties;
 
 /**
- * Typesafe custom configuration.
- *
  * @author Maciej Szarlinski
  */
-@ConfigurationProperties(prefix = "rooms")
-public record RoomsProperties(
-    Cache cache
-) {
-    public record Cache(
-        int ttl,
-        int heapSize
-    ) {
-    }
+@SpringBootApplication
+@EnableConfigurationProperties(RoomsProperties.class)
+public class RoomsService {
+
+  public static void main(String[] args) {
+    SpringApplication.run(RoomsService.class, args);
+  }
 }
