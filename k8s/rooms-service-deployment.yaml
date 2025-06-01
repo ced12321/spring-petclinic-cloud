@@ -6,7 +6,7 @@ metadata:
     app: rooms-service
   namespace: spring-petclinic
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: rooms-service
