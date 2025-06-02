@@ -111,10 +111,10 @@ data:
                 - Path=/api/customer/**
               filters:
                 - StripPrefix=2
-            - id: customers-service
+            - id: rooms-service
               uri: http://rooms-service.spring-petclinic.svc.cluster.local:8080
               predicates:
-                - Path=/api/rooms/**
+                - Path=/api/room/**
               filters:
                 - StripPrefix=2
     vets:
