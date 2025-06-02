@@ -1,6 +1,7 @@
 package org.springframework.samples.petclinic.vets.adapter;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.vets.model.RoomRepository;
@@ -20,36 +21,51 @@ public class RoomController {
 
     private final RoomRepository roomRepository;
 
+    @Value("${HOSTNAME:unknown}")
+    private String hostname;
+
     @Autowired
     public RoomController(RoomRepository roomRepository) {
         this.roomRepository = roomRepository;
     }
 
     @GetMapping
-    public List<RoomDto> getAllRooms() {
-        return roomRepository.findAll();
+    public ResponseEntity<List<RoomDto>> getAllRooms() {
+        return ResponseEntity.status(HttpStatus.OK).header("X-Pod-host", hostname).body(roomRepository.findAll());
     }
 
     @GetMapping("/{id}")
-    public RoomDto getRoom(@Valid @RequestParam Long id) {
-        return roomRepository.findById(id).orElse(null);
+    public ResponseEntity<RoomDto> getRoom(@PathVariable Long id) {
+        if (id == null || id < 1) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        RoomDto room = roomRepository.findById(id).orElse(null);
+        if (room == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).header("X-Pod-host", hostname).body(null);
+        }
+        return ResponseEntity.status(HttpStatus.OK).header("X-Pod-host", hostname).body((room));
     }
 
     @PostMapping
     public ResponseEntity<String> createRoom(@Valid @RequestBody RoomDto roomDto) {
         roomRepository.save(roomDto);
-        return new ResponseEntity<>("Room created", HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).header("X-Pod-host", hostname).body("Room created");
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@Valid @RequestParam Long id) {
+    public ResponseEntity<String> delete(@PathVariable Long id) {
+        if (id == null || id < 1) {
+            return ResponseEntity.badRequest().body("id must be a positive number");
+        }
+        if (!roomRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Room not found");
+        }
         roomRepository.deleteById(id);
-        return new ResponseEntity<>("Room deleted", HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.OK).header("X-Pod-host" , hostname).body("Room deleted");
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(
+    public ResponseEntity<Map<String, String>>handleValidationExceptions(
         MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -57,7 +73,7 @@ public class RoomController {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        return errors;
+        return ResponseEntity.badRequest().header("X-Pod-host" , hostname).body(errors);
     }
 
 }
