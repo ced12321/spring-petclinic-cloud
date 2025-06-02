@@ -2,6 +2,7 @@ package org.springframework.samples.petclinic.vets.model.dto;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.Instant;
 
 @Entity
@@ -17,11 +18,14 @@ public class RoomDto {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "room_type")
-    @NotBlank(message = "The room type is mandatory and must not be blank")
+    @NotNull(message = "The room type is mandatory and must not be blank")
     private RoomType roomType;
 
     @Column(name = "last_used")
     private Instant lastUsed;
+
+    @Column(name = "occupied")
+    private  boolean occupied;
 
     public Long getId() {
         return id;
@@ -53,5 +57,13 @@ public class RoomDto {
 
     public void setLastUsed(Instant lastUsed) {
         this.lastUsed = lastUsed;
+    }
+
+    public boolean isOccupied() {
+        return occupied;
+    }
+
+    public void setOccupied(boolean occupied) {
+        this.occupied = occupied;
     }
 }
