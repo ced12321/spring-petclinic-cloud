@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS rooms (
   room_name VARCHAR(30),
   room_type VARCHAR(30),
   last_used TIMESTAMP,
+  occupied BOOLEAN,
   INDEX(room_name)
 ) engine=InnoDB;
