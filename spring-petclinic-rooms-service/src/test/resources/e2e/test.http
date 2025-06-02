@@ -1,5 +1,103 @@
-### GET request to example server
-GET https://examples.http-client.intellij.net/get
-    ?generated-in=IntelliJ IDEA
+### Base URL
+@baseUrl = http://10.101.248.111/api/room
 
-###
+### 1. Get all rooms
+GET {{baseUrl}}/rooms
+
+### 2. Get room by valid id
+GET {{baseUrl}}/rooms/1
+
+### 3. Get room by invalid id (not found)
+GET {{baseUrl}}/rooms/9999
+
+### 5. Create room - valid
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Room 301",
+  "roomType": "NORMAL",
+  "lastUsed": "2024-06-01T10:00:00Z",
+  "occupied": true
+}
+
+### 6. Create room - missing name
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "roomType": "NORMAL",
+  "lastUsed": "2024-06-01T10:00:00Z",
+  "occupied": false
+}
+
+### 7. Create room - missing roomType
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Room 401",
+  "lastUsed": "2024-06-01T10:00:00Z",
+  "occupied": true
+}
+
+### 8. Create room - invalid enum
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Room 999",
+  "roomType": "INVALID_TYPE",
+  "lastUsed": "2024-06-01T10:00:00Z",
+  "occupied": true
+}
+
+### 9. Create room - blank name
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "",
+  "roomType": "NORMAL",
+  "lastUsed": "2024-06-01T10:00:00Z",
+  "occupied": false
+}
+
+### 10. Delete existing room
+DELETE {{baseUrl}}/rooms/1
+
+### 11. Delete non-existing room
+DELETE {{baseUrl}}/rooms/9999
+
+### 12. Delete with missing id
+DELETE {{baseUrl}}/rooms
+
+### 13. Create room - only required fields
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Compact Room",
+  "roomType": "SPECIAL1",
+  "occupied": false
+}
+
+### 14. Create room - occupied true, no lastUsed
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Occupied Room",
+  "roomType": "SPECIAL2",
+  "occupied": true
+}
+
+### 15. Create room - minimal payload
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Minimal",
+  "roomType": "NORMAL",
+  "occupied": false
+}
