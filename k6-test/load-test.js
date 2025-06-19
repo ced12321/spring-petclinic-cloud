@@ -8,21 +8,34 @@ export let options = {
     duration: '60s', // Increased duration to allow more operations
     thresholds: {
         //http_req_failed: ['rate<0.01'], // http errors should be less than 1% (excluding expected failures)
-        http_req_duration: ['p(95)<750'], // Increased duration for more complex operations
+        http_req_duration: ['p(95)<1000'], // Increased duration for more complex operations
     },
 };
 
 // Base URLs for different parts of the API
 const LOCAL_BASE_URL = 'http://localhost:8080';
 const ROOM_API_BASE_URL = `${LOCAL_BASE_URL}/api/room`; // All room operations go through this
+const CUSTOMER_API_BASE_URL = `${LOCAL_BASE_URL}/api/customer`; // For customer (owner/pet) operations
+const GATEWAY_API_BASE_URL = `${LOCAL_BASE_URL}/api/gateway`; // For gateway operations (like owner details)
+const VISIT_API_BASE_URL = `${LOCAL_BASE_URL}/api/visit`; // For visit operations
 
 // Headers for JSON requests
 const JSON_HEADERS = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json, text/plain, */*',
+    'Accept-Encoding': 'gzip, deflate, br',
 };
+
+// Helper function to get a random pet type (1 to 6)
+function getRandomPetType() {
+    return Math.floor(Math.random() * 6) + 1;
+}
 
 // The main function that each Virtual User will execute
 export default function () {
+    let ownerId; // Declare ownerId outside the group to be accessible across subsequent groups
+    let petId;   // Declare petId outside the group to be accessible across subsequent groups
+
     // --- Phase 1: Homepage and Core Endpoints (using LOCAL_BASE_URL) ---
     group('Homepage and Core Endpoints', function () {
         // Access the homepage
@@ -177,6 +190,154 @@ export default function () {
         check(deleteMissingIdRes, { 'DELETE /api/room/rooms (missing id) status is 405 or 404': (r) => r.status === 405 || r.status === 404 });
         sleep(0.5);
     });
+
+    sleep(1); // Think time before owner operations
+
+    // --- Phase 5.1: Owner Operations ---
+    group('Owner Operations', function () {
+        // All Owners
+        const allOwnersRes = http.get(`${CUSTOMER_API_BASE_URL}/owners`, { headers: JSON_HEADERS });
+        check(allOwnersRes, { 'GET /api/customer/owners status is 200': (r) => r.status === 200 });
+        sleep(0.3); // Corresponds to Gaussian Random Timer of ~300ms
+
+        // Add Owner
+        const addOwnerPayload = {
+            "firstName": `Firstname${uuidv4().substring(0, 4)}`, // Unique first name
+            "lastName": `Lastname${uuidv4().substring(0, 4)}`,   // Unique last name
+            "address": "Address",
+            "city": "City",
+            "telephone": "0000000000"
+        };
+        const addOwnerRes = http.post(`${CUSTOMER_API_BASE_URL}/owners`, JSON.stringify(addOwnerPayload), { headers: JSON_HEADERS });
+        check(addOwnerRes, { 'POST /api/customer/owners (add owner) status is 201': (r) => r.status === 201 });
+
+        if (addOwnerRes.status === 201) {
+            try {
+                ownerId = addOwnerRes.json().id; // Extract OWNER_ID
+            } catch (e) {
+                console.error('Failed to parse owner ID from response:', e, addOwnerRes.body);
+            }
+        }
+        sleep(0.3);
+
+        if (ownerId) {
+            // Owner Details (using Gateway API)
+            const ownerDetailsRes = http.get(`${GATEWAY_API_BASE_URL}/owners/${ownerId}`, { headers: JSON_HEADERS });
+            check(ownerDetailsRes, { 'GET /api/gateway/owners/:id (owner details) status is 200': (r) => r.status === 200 });
+            sleep(0.3);
+
+            // Update Owner
+            const updateOwnerPayload = {
+                "id": ownerId,
+                "firstName": "FirstnameUpdated",
+                "lastName": `LastnameUpdated${ownerId}`,
+                "address": `AddressUpdated${ownerId}`,
+                "city": `CityUpdated${ownerId}`,
+                "telephone": "1111111111"
+            };
+            const updateOwnerRes = http.put(`${CUSTOMER_API_BASE_URL}/owners/${ownerId}`, JSON.stringify(updateOwnerPayload), { headers: JSON_HEADERS });
+            check(updateOwnerRes, { 'PUT /api/customer/owners/:id (update owner) status is 204': (r) => r.status === 204 });
+            sleep(0.3);
+        } else {
+            console.warn('Skipping subsequent owner/pet/visit operations due to missing ownerId.');
+        }
+    });
+
+    sleep(1); // Think time before pet operations
+
+    // --- Phase 5.2: Pet Operations ---
+    group('Pet Operations', function () {
+        if (!ownerId) {
+            console.warn('Skipping Pet Operations: ownerId is missing from previous step.');
+            sleep(0.1); // Small sleep to avoid busy loop if ownerId is consistently missing
+            return;
+        }
+
+        // Add Pet
+        const petType = getRandomPetType(); // Simulate PET_TYPE random variable
+        const addPetPayload = {
+            "name": `Pet${uuidv4().substring(0, 4)}`, // Unique pet name
+            "birthDate": "2018-12-31T23:00:00.000Z",
+            "typeId": petType
+        };
+        const addPetRes = http.post(`${CUSTOMER_API_BASE_URL}/owners/${ownerId}/pets`, JSON.stringify(addPetPayload), { headers: JSON_HEADERS });
+        check(addPetRes, { 'POST /api/customer/owners/:id/pets (add pet) status is 201': (r) => r.status === 201 });
+
+        if (addPetRes.status === 201) {
+            try {
+                petId = addPetRes.json().id; // Extract PET_ID
+            } catch (e) {
+                console.error('Failed to parse pet ID from response:', e, addPetRes.body);
+            }
+        }
+        sleep(0.3);
+
+        if (petId) {
+            // Add Random Second Pet (simulating JMeter's RandomController)
+            // This is a simple 50% chance, adjust as needed.
+            if (Math.random() < 0.5) { // Roughly 50% chance as per JMeter's Random Controller
+                const secondPetType = getRandomPetType();
+                const addSecondPetPayload = {
+                    "name": `Pet2-${uuidv4().substring(0,4)}`, // Unique name for second pet
+                    "birthDate": "2019-01-01T12:00:00.000Z",
+                    "typeId": secondPetType
+                };
+                const addSecondPetRes = http.post(`${CUSTOMER_API_BASE_URL}/owners/${ownerId}/pets`, JSON.stringify(addSecondPetPayload), { headers: JSON_HEADERS });
+                check(addSecondPetRes, { 'POST /api/customer/owners/:id/pets (add second pet) status is 201': (r) => r.status === 201 });
+                sleep(0.3);
+            }
+
+            // Update Pet
+            const updatePetPayload = {
+                "id": petId,
+                "name": `PetUpdated${ownerId}`, // Updated name for the pet
+                "birthDate": "2018-12-31T23:00:00.000Z",
+                "typeId": petType
+            };
+            const updatePetRes = http.put(`${CUSTOMER_API_BASE_URL}/owners/${ownerId}/pets/${petId}`, JSON.stringify(updatePetPayload), { headers: JSON_HEADERS });
+            check(updatePetRes, { 'PUT /api/customer/owners/:id/pets/:id (update pet) status is 204': (r) => r.status === 204 });
+            sleep(0.3);
+        } else {
+            console.warn('Skipping Visit Operations: petId is missing from previous step.');
+        }
+    });
+
+    sleep(1); // Think time before visit operations
+
+    // --- Phase 5.3: Visit Operations ---
+    group('Visit Operations', function () {
+        if (!ownerId || !petId) {
+            console.warn('Skipping Visit Operations: ownerId or petId is missing from previous steps.');
+            sleep(0.1); // Small sleep to avoid busy loop if IDs are consistently missing
+            return;
+        }
+
+        // Add Visit
+        const addVisitPayload = {
+            "date": "2019-03-15",
+            "description": "Visit"
+        };
+        const addVisitRes = http.post(`${VISIT_API_BASE_URL}/owners/${ownerId}/pets/${petId}/visits`, JSON.stringify(addVisitPayload), { headers: JSON_HEADERS });
+        check(addVisitRes, { 'POST /api/visit/owners/:id/pets/:id/visits (add visit) status is 201': (r) => r.status === 201 });
+        sleep(0.3);
+
+        // Add Random Second Visit (simulating JMeter's RandomController)
+        if (Math.random() < 0.5) { // Roughly 50% chance
+            const addSecondVisitPayload = {
+                "date": "2019-03-16", // Different date for second visit
+                "description": "Second Visit"
+            };
+            const addSecondVisitRes = http.post(`${VISIT_API_BASE_URL}/owners/${ownerId}/pets/${petId}/visits`, JSON.stringify(addSecondVisitPayload), { headers: JSON_HEADERS });
+            check(addSecondVisitRes, { 'POST /api/visit/owners/:id/pets/:id/visits (add second visit) status is 201': (r) => r.status === 201 });
+            sleep(0.3);
+        }
+
+        // All Vets - (Moved here for logical grouping as it was the last JMeter step)
+        const allVetsRes = http.get(`${LOCAL_BASE_URL}/api/vet/vets`, { headers: JSON_HEADERS });
+        check(allVetsRes, { 'GET /api/vet/vets status is 200': (r) => r.status === 200 });
+        sleep(0.3);
+    });
+
 
     // Overall sleep for the entire iteration
     sleep(1);

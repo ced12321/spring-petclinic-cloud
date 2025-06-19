@@ -294,7 +294,18 @@ You should also see monitoring and traces from Wavefront under the application n
 ![Wavefront dashboard screen](./docs/wavefront-k8s.png)
 
 
+### Execute load tests
+Enable port forwarding:
 
+```
+kubectl port-forward <api-gateway-pod> -n spring-petclinic 8080:8080
+```
+
+Run tests:
+```
+cd k6-test/load-test.js
+k6 run load-test.js
+```
 
 
 ## Starting services locally without Docker
