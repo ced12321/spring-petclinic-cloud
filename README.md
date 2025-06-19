@@ -231,6 +231,16 @@ standard (default)   kubernetes.io/gce-pd   6h11m
 
 ```
 
+Alternative: local-path
+
+```
+ kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+kubectl patch sc hostpath -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
+
+kubectl patch sc local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
 Deploy the databases:
 
 ```bash
