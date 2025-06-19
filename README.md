@@ -239,6 +239,7 @@ helm repo update
 helm install vets-db-mysql bitnami/mysql --namespace spring-petclinic --version 9.14.3 --set auth.database=service_instance_db
 helm install visits-db-mysql bitnami/mysql --namespace spring-petclinic  --version 9.14.3 --set auth.database=service_instance_db
 helm install customers-db-mysql bitnami/mysql --namespace spring-petclinic  --version 9.14.3 --set auth.database=service_instance_db
+helm install rooms-db-mysql bitnami/mysql --namespace spring-petclinic  --version 9.14.3 --set auth.database=service_instance_db
 ```
 
 ### Deploying the application
@@ -273,6 +274,10 @@ api-gateway   LoadBalancer   10.7.250.24   34.1.2.22   80:32675/TCP   18m
 ```
 
 You can now browse to that IP in your browser and see the application running.
+
+```
+kubectl port-forward <api-gateway-pod> -n spring-petclinic 8080:8080
+```
 
 You should also see monitoring and traces from Wavefront under the application name `spring-petclinic-k8s`:
 
