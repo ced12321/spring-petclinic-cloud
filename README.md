@@ -231,6 +231,16 @@ standard (default)   kubernetes.io/gce-pd   6h11m
 
 ```
 
+Alternative: local-path
+
+```
+ kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/deploy/local-path-storage.yaml
+
+kubectl patch sc hostpath -p '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
+
+kubectl patch sc local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+```
+
 Deploy the databases:
 
 ```bash
@@ -239,6 +249,7 @@ helm repo update
 helm install vets-db-mysql bitnami/mysql --namespace spring-petclinic --version 9.14.3 --set auth.database=service_instance_db
 helm install visits-db-mysql bitnami/mysql --namespace spring-petclinic  --version 9.14.3 --set auth.database=service_instance_db
 helm install customers-db-mysql bitnami/mysql --namespace spring-petclinic  --version 9.14.3 --set auth.database=service_instance_db
+helm install rooms-db-mysql bitnami/mysql --namespace spring-petclinic  --version 9.14.3 --set auth.database=service_instance_db
 ```
 
 ### Deploying the application
@@ -274,12 +285,27 @@ api-gateway   LoadBalancer   10.7.250.24   34.1.2.22   80:32675/TCP   18m
 
 You can now browse to that IP in your browser and see the application running.
 
+```
+kubectl port-forward <api-gateway-pod> -n spring-petclinic 8080:8080
+```
+
 You should also see monitoring and traces from Wavefront under the application name `spring-petclinic-k8s`:
 
 ![Wavefront dashboard screen](./docs/wavefront-k8s.png)
 
 
+### Execute load tests
+Enable port forwarding:
 
+```
+kubectl port-forward <api-gateway-pod> -n spring-petclinic 8080:8080
+```
+
+Run tests:
+```
+cd k6-test/load-test.js
+k6 run load-test.js
+```
 
 
 ## Starting services locally without Docker
