@@ -28,7 +28,20 @@ spring:
         enabled: true
         name: petclinic-config
 management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+      wavefront:
+        apiToken: ""
+        enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
   endpoint:
+    prometheus:
+      enabled: true
     restart:
       enabled: true
 ---

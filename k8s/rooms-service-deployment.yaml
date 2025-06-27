@@ -7,7 +7,7 @@ metadata:
     app: rooms-service
   namespace: spring-petclinic
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: rooms-service
@@ -55,7 +55,8 @@ spec:
               cpu: 2000m
               memory: 1Gi
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
               protocol: TCP
       restartPolicy: Always
       

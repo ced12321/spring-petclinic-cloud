@@ -77,7 +77,7 @@ deploy:
     manifests:
     - k8s/init-namespace/01-namespace.yaml
     - k8s/init-namespace/02-regcreds.yaml
-    - k8s/init-services/02-config-map.yaml
+    - k8s/init-services/00-config-map.yaml
     - k8s/init-services/03-role.yaml
     #- k8s/init-services/04-wavefront.yaml
     - k8s/init-services/05-api-gateway-service.yaml
