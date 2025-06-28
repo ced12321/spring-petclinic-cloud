@@ -19,7 +19,4 @@ data:
           - source_labels: [__meta_kubernetes_service_label_app]
             action: keep
             regex: .*
-          - source_labels: [__meta_kubernetes_endpoint_port_number]
-            regex: "8080"
-            action: keep
-        metrics_path: /actuator/metrics
+        metrics_path: /actuator/prometheus
