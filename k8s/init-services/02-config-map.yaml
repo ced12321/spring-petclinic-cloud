@@ -23,6 +23,14 @@ data:
 
     # Logging
     logging.level.org.springframework: INFO
+    
+    chaos:
+      monkey:
+        enabled: true
+        watcher:
+          service: true
+        assaults:
+          latencyActive: true
 
     # Metrics
     management:
@@ -30,6 +38,10 @@ data:
         health:
           probes:
             enabled: true
+        chaosmonkey:
+          enabled: true
+        chaosmonkeyjmx:
+          enabled: true
       health:
         livenessState:
           enabled: true
@@ -50,7 +62,7 @@ data:
           prometheus:
             enabled: true
           wavefront:
-            enabled: true
+            enabled: false
 
     customers-service-id: http://customers-service.spring-petclinic.svc.cluster.local:8080
     visits-service-id: http://vists-service.spring-petclinic.svc.cluster.local:8080
@@ -121,4 +133,4 @@ data:
       cache:
         ttl: 60
         heap-size: 101
-
+        
