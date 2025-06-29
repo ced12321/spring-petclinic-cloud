@@ -11,14 +11,20 @@ spring:
 management:
   metrics:
     export:
+      prometheus:
+        enabled: true
       wavefront:
         apiToken: ""
+        enabled: false
+    tags:
+      application: ${spring.application.name}
   endpoint:
     chaosmonkey:
       enabled: true
     chaosmonkeyjmx:
       enabled: true
-
+    prometheus:
+      enabled: true
   endpoints:
     web:
       exposure:

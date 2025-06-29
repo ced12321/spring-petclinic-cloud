@@ -1,14 +1,17 @@
 ### Base URL
-@baseUrl = http://10.101.248.111/api/room
+@baseUrl = 10.101.84.31/api/room
 
 ### 1. Get all rooms
 GET {{baseUrl}}/rooms
+Connection: close
 
 ### 2. Get room by valid id
 GET {{baseUrl}}/rooms/1
+Connection: close
 
 ### 3. Get room by invalid id (not found)
 GET {{baseUrl}}/rooms/9999
+Connection: close
 
 ### 5. Create room - valid
 POST {{baseUrl}}/rooms
