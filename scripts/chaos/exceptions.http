@@ -1,0 +1,86 @@
+### Base URL for your Spring PetClinic Cloud service
+# kubectl port-forward -n spring-petclinic deployment/rooms-service 8082:8080
+@baseUrl = http://localhost:8082
+
+### 1. Check current Chaos Monkey status (Optional, but good for verification)
+GET {{baseUrl}}/actuator/chaosmonkey
+Accept: application/json
+
+###
+# 2. Configure Chaos Monkey Watchers for Exception Assault
+#    - Enable "restController" to watch your @RestController methods.
+#    - Enable "repository" because your controller directly calls RoomRepository,
+#      which is a common injection point for AOP.
+#    - Disable other watchers to avoid interference.
+###
+POST {{baseUrl}}/actuator/chaosmonkey/watchers
+Content-Type: application/json
+
+{
+  "controller": true,
+  "restController": true,
+  "service": true,
+  "repository": true,
+  "component": true,
+  "restTemplate": true,
+  "webClient": true,
+  "actuatorHealth": false
+}
+
+###
+# 3. Configure Chaos Monkey for Exception Assault
+#    - exceptionsActive: true (Enables RuntimeException injection)
+#    - level: 5 (This means, on average, 1 out of every 5 requests will be attacked)
+#    - All other assault-related boolean flags explicitly set to false to isolate the effect.
+#    - The 'exception' object is left at its default (RuntimeException with default message).
+###
+POST {{baseUrl}}/actuator/chaosmonkey/assaults
+Content-Type: application/json
+
+{
+  "level": 5,
+  "latencyRangeStart": 500,
+  "latencyRangeEnd": 1500,
+  "latencyActive": false,
+  "exceptionsActive": true,
+  "killApplicationActive": false,
+  "memoryActive": false,
+  "memoryMillisecondsHoldFilledMemory": 90000,
+  "memoryMillisecondsWaitNextIncrease": 1000,
+  "memoryFillIncrementFraction": 0.15,
+  "memoryFillTargetFraction": 0.25,
+  "cpuActive": false,
+  "cpuMillisecondsHoldLoad": 90000,
+  "cpuLoadTargetFraction": 0.9,
+  "runtimeAssaultCronExpression": "OFF"
+}
+
+###
+# 4. Verify the configuration (Crucial step after POSTs)
+#    - Look for "exceptionsActive": true and "level": 5 in assaultProperties
+#    - Look for "restController": true and "repository": true in watcherProperties
+###
+GET {{baseUrl}}/actuator/chaosmonkey
+Accept: application/json
+
+###
+# 5. Make multiple requests to your application (Expected to return HTTP 500 due to RuntimeException periodically)
+#    - Since level is 5, not every request will cause an exception. You need to send several requests.
+#    - IMPORTANT: Check your Spring Boot application's console/logs after each request. You MUST see
+#      "RuntimeException" stack traces from Chaos Monkey if the AOP injection is working.
+#    - The HTTP response body might be Spring Boot's default error page/JSON or your app's custom handler output.
+#    - Use your IDE's run button multiple times or 'curl' in a loop if in terminal:
+#      for i in {1..10}; do curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8082/rooms; done
+#      This curl command will just print the HTTP status code (e.g., 200, 500).
+###
+GET {{baseUrl}}/rooms
+Accept: application/json
+
+
+### Undo chaos monkey setting
+POST {{baseUrl}}/actuator/chaosmonkey/assaults
+Content-Type: application/json
+
+{
+  "exceptionsActive": false
+}
