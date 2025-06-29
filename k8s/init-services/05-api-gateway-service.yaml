@@ -14,8 +14,4 @@ spec:
   selector:
     app: api-gateway
   type: LoadBalancer
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 5
-status:
-  loadBalancer: { }
+  sessionAffinity: None
