@@ -1,0 +1,84 @@
+# kubectl port-forward -n spring-petclinic deployment/rooms-service 8082:8080
+### Base URL for your Spring PetClinic Cloud service
+@baseUrl = http://localhost:8082
+
+### 1. Check current Chaos Monkey status (Optional, but good for verification)
+GET {{baseUrl}}/actuator/chaosmonkey
+Accept: application/json
+
+###
+# 2. Configure Chaos Monkey Watchers for Latency
+#    - Enable "restController" to watch your @RestController methods.
+#    - Enable "repository" because your RoomController directly calls RoomRepository.
+#    - Disable other watchers to avoid interference.
+###
+POST {{baseUrl}}/actuator/chaosmonkey/watchers
+Content-Type: application/json
+
+{
+  "controller": true,
+  "restController": true,
+  "service": true,
+  "repository": true,
+  "component": true,
+  "restTemplate": true,
+  "webClient": true,
+  "actuatorHealth": false
+}
+
+###
+# 3. Configure Chaos Monkey for Latency Assault (FULL PAYLOAD for v2.5.2)
+#    - level: 100 (100% probability for the active assault)
+#    - latencyActive: true (Enables latency injection)
+#    - latencyRangeStart: 1000 (Min delay in ms)
+#    - latencyRangeEnd: 3000 (Max delay in ms)
+#    - All other assault-related boolean flags are explicitly set to false.
+#    - Note: error500Active is NOT included as it's not supported in 2.5.2.
+###
+POST {{baseUrl}}/actuator/chaosmonkey/assaults
+Content-Type: application/json
+
+{
+  "level": 5,
+  "latencyActive": true,
+  "latencyRangeStart" : 1000,
+  "latencyRangeEnd" : 10000,
+  "exceptionsActive": true,
+  "killApplicationActive": false,
+  "memoryActive": false,
+  "memoryMillisecondsHoldFilledMemory": 90000,
+  "memoryMillisecondsWaitNextIncrease": 1000,
+  "memoryFillIncrementFraction": 0.15,
+  "memoryFillTargetFraction": 0.25,
+  "cpuActive": false,
+  "cpuMillisecondsHoldLoad": 90000,
+  "cpuLoadTargetFraction": 0.9,
+  "runtimeAssaultCronExpression": "OFF"
+}
+
+###
+# 4. Verify the configuration (Crucial step after POSTs)
+#    - Look for "latencyActive": true in assaultProperties
+#    - Look for "latencyRangeStart" and "latencyRangeEnd"
+#    - Look for "restController": true and "repository": true in watcherProperties
+###
+GET {{baseUrl}}/actuator/chaosmonkey
+Accept: application/json
+
+###
+# 5. Make a request to your application (Expected to be delayed by 1-3 seconds)
+#    - Observe the time taken for the request to complete.
+#    - You can often see this directly in your IDE's HTTP client or by using 'time curl' in terminal.
+###
+GET {{baseUrl}}/rooms
+Accept: application/json
+
+# k6 run k6-test/load-test.js
+
+### Undo chaos monkey setting
+POST {{baseUrl}}/actuator/chaosmonkey/assaults
+Content-Type: application/json
+
+{
+  "latencyActive": false
+}

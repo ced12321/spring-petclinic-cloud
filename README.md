@@ -286,7 +286,7 @@ api-gateway   LoadBalancer   10.7.250.24   34.1.2.22   80:32675/TCP   18m
 You can now browse to that IP in your browser and see the application running.
 
 ```
-kubectl port-forward <api-gateway-pod> -n spring-petclinic 8080:8080
+kubectl port-forward -n spring-petclinic deployment/api-gateway 8080:8080
 ```
 
 You should also see monitoring and traces from Wavefront under the application name `spring-petclinic-k8s`:
@@ -298,13 +298,12 @@ You should also see monitoring and traces from Wavefront under the application n
 Enable port forwarding:
 
 ```
-kubectl port-forward <api-gateway-pod> -n spring-petclinic 8080:8080
+kubectl port-forward -n spring-petclinic deployment/api-gateway 8080:8080
 ```
 
 Run tests:
 ```
-cd k6-test/load-test.js
-k6 run load-test.js
+k6 run k6-test/load-test.js
 ```
 
 

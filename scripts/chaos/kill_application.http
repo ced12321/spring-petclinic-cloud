@@ -1,0 +1,52 @@
+### Base URL for your Spring PetClinic Cloud service
+# kubectl port-forward -n spring-petclinic deployment/rooms-service 8082:8080
+@baseUrl = http://localhost:8082
+
+###
+# 1. Configure Chaos Monkey for Kill Application Assault
+#    - level: 100 (100% probability for selected assaults when they trigger)
+#    - killApplicationActive: true (Enables the app killer)
+#    - All other assaults are explicitly set to false to ensure only killApplication is active.
+#    - runtimeAssaultCronExpression: OFF (Ensures it's not on a schedule, we'll trigger manually)
+###
+POST {{baseUrl}}/actuator/chaosmonkey/assaults
+Content-Type: application/json
+
+{
+  "level": 100,
+  "latencyActive": false,
+  "exceptionsActive": false,
+  "killApplicationActive": true,
+  "memoryActive": false,
+  "cpuActive": false,
+  "diskSpaceActive": false,
+  "error500Active": false,
+  "runtimeAssaultCronExpression": "OFF"
+}
+
+###
+# 2. Verify the configuration (Crucial step after POST)
+#    - Look for "killApplicationActive": true in the response
+###
+GET {{baseUrl}}/actuator/chaosmonkey
+Accept: application/json
+
+###
+# 4. Trigger the Kill Application Assault manually
+#    - This will attempt to shut down your Spring Boot application.
+#    - Expect this request to potentially hang, error out, or return an incomplete response
+#      as the application shuts down mid-request.
+#    - IMPORTANT: Your application will stop after this, you'll need to restart it manually
+#                 before running any further requests.
+###
+POST {{baseUrl}}/actuator/chaosmonkey/assaults/runtime/attack
+
+###
+# 5. Attempt to access your application after the kill (Expected to fail: Connection Refused/Reset)
+#    - You should get a "connection refused" or "empty reply from server" error here.
+#    - This confirms the application has been successfully killed.
+###
+GET {{baseUrl}}/rooms
+Accept: application/json
+
+# k6 run k6-test/load-test.js
