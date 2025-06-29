@@ -16,6 +16,8 @@ management:
       wavefront:
         apiToken: ""
         enabled: false
+    tags:
+      application: ${spring.application.name}
   endpoint:
     chaosmonkey:
       enabled: true
